@@ -13,10 +13,12 @@
     .fade-in {
       opacity: 1;
       transition: opacity 1s ease-in-out;
+      pointer-events: auto;
     }
     .fade-out {
       opacity: 0;
       transition: opacity 1s ease-in-out;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -84,7 +86,7 @@
     window.addEventListener("scroll", () => {
       const hero = document.getElementById("hero");
       const main = document.getElementById("mainContent");
-      const trigger = window.scrollY > window.innerHeight * 0.6;
+      const trigger = window.scrollY > window.innerHeight * 0.5;
 
       if (trigger) {
         hero.classList.add("fade-out");
@@ -123,7 +125,7 @@
         document.getElementById('walletButton').hidden = false;
       } else {
         document.getElementById('walletStatus').innerHTML = "✔️ Wallet connected.";
-        document.getElementById('walletStatus').style.color = "#48bb78"; // green
+        document.getElementById('walletStatus').style.color = "#48bb78";
         document.getElementById("walletButton").hidden = true;
       }
 
