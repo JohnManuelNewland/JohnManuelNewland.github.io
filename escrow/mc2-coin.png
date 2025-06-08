@@ -1,0 +1,3 @@
+git add mc2-coin.png
+git commit -m "Add MC² coin emblem image"
+git push origin main
