@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MC² Escrow DApp</title>
+  <title>Polygon Escrow</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -20,15 +20,9 @@
 
   <!-- Hero Section -->
   <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
-    <h1 class="text-7xl orbitron-font font-extrabold tracking-widest">MC²</h1>
+    <h1 class="text-7xl orbitron-font font-extrabold tracking-widest">Polygon</h1>
     <p class="mt-4 text-lg text-gray-400">Your trusted escrow site</p>
-    <button onclick="switchToPolygon()" class="mt-6 bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 text-white">
-      Switch to Polygon
-    </button>
-    <button onclick="document.getElementById('mainContent').scrollIntoView({ behavior: 'smooth' })"
-            class="mt-6 bg-white text-black px-4 py-2 rounded hover:bg-gray-300">
-      Enter Site
-    </button>
+    <div class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</div>
   </section>
 
   <!-- Main Escrow App -->
@@ -84,19 +78,8 @@
     const escrowContractAddress = "0xYourPolygonEscrowContract"; // Replace with your deployed contract
     const escrowTokenAddress = "0xYourPolygonToken"; // Replace with your token (e.g., USDC)
 
-    async function switchToPolygon() {
-      try {
-        await window.ethereum.request({
-          method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x89" }] // Polygon Mainnet
-        });
-        alert("Switched to Polygon network.");
-      } catch (error) {
-        console.error("Switch failed", error);
-      }
-    }
-
     // Your actual contract logic goes here
+    function switchToPolygon() {}
     function checkWallet() {}
     function approveButton() {}
     function openEscrow() {}
