@@ -36,8 +36,11 @@
     <div class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</div>
   </section>
 
+  <!-- Scroll spacer to enable scroll -->
+  <div style="height: 100vh;"></div>
+
   <!-- Main Content -->
-  <div id="mainContent" class="fade-out">
+  <div id="mainContent" class="fade-out min-h-screen">
     <div class="max-w-3xl mx-auto p-6 bg-gradient-to-br from-gray-900 to-black shadow-xl mt-10 rounded-xl border border-gray-700">
       <h1 class="text-3xl font-bold mb-4 text-center text-white">🛡️ Escrow Smart Contract</h1>
       <hr class="mb-6 border-gray-700">
@@ -52,6 +55,7 @@
         <h3 class="text-lg font-semibold">Status: <span id="responseMessage" class="text-green-400"></span></h3>
       </div>
 
+      <!-- Open Escrow -->
       <div class="mb-10">
         <h2 class="text-xl font-semibold mb-4 text-white">Open Escrow</h2>
         <p class="mb-3 text-sm text-gray-400">Before you open an escrow account, you must approve the funds transfer from your wallet.</p>
@@ -65,6 +69,7 @@
         <button id="openButton" onclick="openEscrow()" class="bg-green-600 text-white px-4 py-2 mt-4 rounded hover:bg-green-700" disabled>Open Escrow</button>
       </div>
 
+      <!-- Close Escrow -->
       <div>
         <h2 class="text-xl font-semibold mb-4 text-white">Close Escrow</h2>
         <label class="block text-sm font-medium text-gray-300">Close escrow option</label>
@@ -97,7 +102,7 @@
     window.addEventListener("scroll", () => {
       const hero = document.getElementById("hero");
       const main = document.getElementById("mainContent");
-      const trigger = window.scrollY > window.innerHeight * 0.5;
+      const trigger = window.scrollY > window.innerHeight * 0.3;
       if (trigger) {
         hero.classList.add("fade-out");
         main.classList.remove("fade-out");
@@ -109,7 +114,7 @@
       }
     });
 
-    // Add your working logic here or paste the full escrow logic
+    // Placeholder: Replace with your actual DApp logic
     function checkWallet() {}
     function approveButton() {}
     function openEscrow() {}
