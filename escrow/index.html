@@ -11,42 +11,32 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.5.0/ethers.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
-    .fade-in {
-      opacity: 1;
-      transition: opacity 1s ease-in-out;
-      pointer-events: auto;
-    }
-    .fade-out {
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
-      pointer-events: none;
-    }
     .orbitron-font {
       font-family: 'Orbitron', sans-serif;
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans" onload="checkWallet()">
+<body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans">
 
   <!-- Hero Section -->
   <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
     <h1 class="text-7xl orbitron-font font-extrabold tracking-widest">MC²</h1>
     <p class="mt-4 text-lg text-gray-400">Your trusted escrow site</p>
-    <button onclick="switchToPolygon()" class="mt-6 bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 text-white">Switch to Polygon</button>
+    <button onclick="switchToPolygon()" class="mt-6 bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 text-white">
+      Switch to Polygon
+    </button>
     <button onclick="document.getElementById('mainContent').scrollIntoView({ behavior: 'smooth' })"
             class="mt-6 bg-white text-black px-4 py-2 rounded hover:bg-gray-300">
       Enter Site
     </button>
-    <div class="mt-10 animate-bounce text-gray-400 text-xl">↓</div>
   </section>
 
-  <!-- Main Content -->
-  <div id="mainContent" class="fade-out min-h-screen">
-    <div class="max-w-3xl mx-auto p-6 bg-gradient-to-br from-gray-900 to-black shadow-xl mt-10 rounded-xl border border-gray-700">
+  <!-- Main Escrow App -->
+  <section id="mainContent" class="min-h-screen py-12 px-4">
+    <div class="max-w-3xl mx-auto p-6 bg-gradient-to-br from-gray-900 to-black shadow-xl rounded-xl border border-gray-700">
       <h1 class="text-3xl font-bold mb-4 text-center text-white">🛡️ Escrow Smart Contract</h1>
       <hr class="mb-6 border-gray-700">
 
-      <!-- Wallet -->
       <section class="mb-6 text-center">
         <div class="text-sm text-gray-400 mb-2">Wallet connection:</div>
         <span id="walletStatus" class="font-medium text-red-400">Checking for wallet...</span>
@@ -87,18 +77,18 @@
         <button id="closeButton" onclick="closeEscrow()" class="bg-red-600 text-white px-4 py-2 mt-4 rounded hover:bg-red-700">Close Escrow</button>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- JS -->
   <script>
-    const escrowContractAddress = "0xYourPolygonEscrowContract"; // Replace with your contract
+    const escrowContractAddress = "0xYourPolygonEscrowContract"; // Replace with your deployed contract
     const escrowTokenAddress = "0xYourPolygonToken"; // Replace with your token (e.g., USDC)
 
     async function switchToPolygon() {
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x89" }] // 0x89 = Polygon Mainnet
+          params: [{ chainId: "0x89" }] // Polygon Mainnet
         });
         alert("Switched to Polygon network.");
       } catch (error) {
@@ -106,22 +96,7 @@
       }
     }
 
-    window.addEventListener("scroll", () => {
-      const hero = document.getElementById("hero");
-      const main = document.getElementById("mainContent");
-      const trigger = window.scrollY > window.innerHeight * 0.3;
-      if (trigger) {
-        hero.classList.add("fade-out");
-        main.classList.remove("fade-out");
-        main.classList.add("fade-in");
-      } else {
-        hero.classList.remove("fade-out");
-        main.classList.remove("fade-in");
-        main.classList.add("fade-out");
-      }
-    });
-
-    // Paste your real logic here
+    // Your actual contract logic goes here
     function checkWallet() {}
     function approveButton() {}
     function openEscrow() {}
