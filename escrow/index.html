@@ -29,15 +29,16 @@
 <body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans" onload="checkWallet()">
 
   <!-- Hero Section -->
-  <section id="hero" class="h-screen w-full flex flex-col justify-center items-center sticky top-0 z-10">
+  <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
     <h1 class="text-7xl orbitron-font font-extrabold tracking-widest">MC²</h1>
     <p class="mt-4 text-lg text-gray-400">Your trusted escrow site</p>
     <button onclick="switchToPolygon()" class="mt-6 bg-purple-600 px-4 py-2 rounded hover:bg-purple-700 text-white">Switch to Polygon</button>
-    <div class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</div>
+    <button onclick="document.getElementById('mainContent').scrollIntoView({ behavior: 'smooth' })"
+            class="mt-6 bg-white text-black px-4 py-2 rounded hover:bg-gray-300">
+      Enter Site
+    </button>
+    <div class="mt-10 animate-bounce text-gray-400 text-xl">↓</div>
   </section>
-
-  <!-- Scroll spacer to enable scroll -->
-  <div style="height: 100vh;"></div>
 
   <!-- Main Content -->
   <div id="mainContent" class="fade-out min-h-screen">
@@ -45,6 +46,7 @@
       <h1 class="text-3xl font-bold mb-4 text-center text-white">🛡️ Escrow Smart Contract</h1>
       <hr class="mb-6 border-gray-700">
 
+      <!-- Wallet -->
       <section class="mb-6 text-center">
         <div class="text-sm text-gray-400 mb-2">Wallet connection:</div>
         <span id="walletStatus" class="font-medium text-red-400">Checking for wallet...</span>
@@ -58,14 +60,19 @@
       <!-- Open Escrow -->
       <div class="mb-10">
         <h2 class="text-xl font-semibold mb-4 text-white">Open Escrow</h2>
-        <p class="mb-3 text-sm text-gray-400">Before you open an escrow account, you must approve the funds transfer from your wallet.</p>
+        <p class="mb-3 text-sm text-gray-400">Before opening escrow, approve token transfer.</p>
+
         <label class="block text-sm font-medium text-gray-300">Amount</label>
         <input type="number" id="amount" min="1" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"/>
+
         <button id="approveButton" onclick="approveButton()" class="bg-gray-700 text-white px-4 py-2 mt-3 rounded hover:bg-gray-600 mb-4">Approve Token Transfer</button>
+
         <label class="block text-sm font-medium text-gray-300">Seller Address</label>
         <input type="text" id="sellerAddress" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"/>
+
         <label class="block text-sm font-medium text-gray-300 mt-4">Mediator Address</label>
         <input type="text" id="mediatorAddress" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"/>
+
         <button id="openButton" onclick="openEscrow()" class="bg-green-600 text-white px-4 py-2 mt-4 rounded hover:bg-green-700" disabled>Open Escrow</button>
       </div>
 
@@ -82,16 +89,16 @@
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- JS -->
   <script>
-    const escrowContractAddress = "0xYourPolygonEscrowContract"; // Replace with your deployed contract
-    const escrowTokenAddress = "0xYourPolygonToken"; // Replace with USDC or your custom token
+    const escrowContractAddress = "0xYourPolygonEscrowContract"; // Replace with your contract
+    const escrowTokenAddress = "0xYourPolygonToken"; // Replace with your token (e.g., USDC)
 
     async function switchToPolygon() {
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: "0x89" }] // Polygon Mainnet
+          params: [{ chainId: "0x89" }] // 0x89 = Polygon Mainnet
         });
         alert("Switched to Polygon network.");
       } catch (error) {
@@ -114,7 +121,7 @@
       }
     });
 
-    // Placeholder: Replace with your actual DApp logic
+    // Paste your real logic here
     function checkWallet() {}
     function approveButton() {}
     function openEscrow() {}
