@@ -132,7 +132,8 @@
 
         // --- Configuration ---
         // Your Escrow Smart Contract Address (Updated to EIP-55 checksummed format)
-        const escrowContractAddress = "0x608e9a265691f62A39E4e14D160e1591147a468D"; 
+        // This is the actual deployed address of your MyEscrow contract found via transaction hash.
+        let escrowContractAddress = "0x608e9a265691f62A39E4e14D160e1591147a468D"; 
         
         // Your Escrow Smart Contract ABI
         const escrowABI = [
@@ -247,21 +248,30 @@
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
                 
-                console.log("Attempting to create contract instance with address:", escrowContractAddress);
+                // Force checksum and validate address using ethers.utils.getAddress()
+                try {
+                    escrowContractAddress = ethers.utils.getAddress(escrowContractAddress);
+                    console.log("Validated and checksummed Escrow Contract Address:", escrowContractAddress);
+                } catch (addressError) {
+                    console.error("Error validating Escrow Contract Address using ethers.utils.getAddress():", addressError);
+                    setResponseMessage("Configuration Error: Escrow Contract Address is fundamentally invalid.", true);
+                    disableButtons();
+                    return;
+                }
+
+                console.log("Attempting to create myContract instance with address:", escrowContractAddress);
 
                 try {
                     myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
-                    console.log("Contract instance created successfully.");
+                    console.log("myContract instance created successfully.");
                 } catch (contractError) {
                     console.error("Error creating myContract instance:", contractError);
-                    setResponseMessage("Error initializing Escrow Contract. Please check its address and ABI in the code.", true);
+                    setResponseMessage("Error initializing Escrow Contract. Please ensure the ABI is correct for the deployed contract.", true);
                     disableButtons();
                     return;
                 }
 
                 tokenContract = new ethers.Contract(tokenContractAddress, tokenABI, signer);
-
-                console.log("Using Escrow Contract Address:", escrowContractAddress); 
 
                 try {
                     tokenDecimals = await tokenContract.decimals();
@@ -308,9 +318,6 @@
                 showMessageBox("Please connect your wallet and ensure the escrow contract is configured correctly.");
                 return;
             }
-
-            // The ethers.Contract constructor itself will validate the address format and checksum.
-            // No need for explicit isAddress() check here if myContract was initialized successfully.
             
             const amountInput = document.getElementById("amount").value;
             if (isNaN(amountInput) || parseFloat(amountInput) <= 0) {
@@ -357,9 +364,6 @@
                 return;
             }
             
-            // The ethers.Contract constructor itself will validate the address format and checksum.
-            // No need for explicit isAddress() check here if myContract was initialized successfully.
-
             const amountInput = document.getElementById("amount").value;
             const sellerAddress = document.getElementById("sellerAddress").value;
             const mediatorAddress = document.getElementById("mediatorAddress").value;
@@ -427,9 +431,6 @@
                 return;
             }
             
-            // The ethers.Contract constructor itself will validate the address format and checksum.
-            // No need for explicit isAddress() check here if myContract was initialized successfully.
-
             const closeOption = document.getElementById("closeOption").value;
             const paySellerBoolean = (closeOption === "paySeller"); 
 
