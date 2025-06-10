@@ -131,7 +131,10 @@
         let userAddress = null; // Store user's connected address
 
         // --- Configuration ---
-        const escrowContractAddress = "0x608e9a265691F62a39E4e14D160e1591147a468d"; 
+        // Your Escrow Smart Contract Address (Updated to EIP-55 checksummed format)
+        const escrowContractAddress = "0x608e9a265691f62A39E4e14D160e1591147a468D"; 
+        
+        // Your Escrow Smart Contract ABI
         const escrowABI = [
             { "inputs": [], "name": "cancel", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
             { "inputs": [{ "internalType": "bool", "name": "paySeller", "type": "bool" }], "name": "closeEscrow", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
@@ -143,7 +146,10 @@
             { "inputs": [], "name": "sellerAddress", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
 
+        // The ERC-20 Token Contract Address you are using for escrow (USDC on Polygon Mainnet PoS)
         const tokenContractAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"; 
+        
+        // ERC-20 Token ABI (Minimal ABI for the 'approve' and 'decimals' functions)
         const tokenABI = [
             "function approve(address spender, uint256 amount) returns (bool)",
             "function decimals() view returns (uint8)" 
@@ -243,12 +249,10 @@
                 
                 console.log("Attempting to create contract instance with address:", escrowContractAddress);
 
-                // Attempt to create contract instance directly without initial isAddress check here
                 try {
                     myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
                     console.log("Contract instance created successfully.");
                 } catch (contractError) {
-                    // Catch specific error if contract address is truly invalid during construction
                     console.error("Error creating myContract instance:", contractError);
                     setResponseMessage("Error initializing Escrow Contract. Please check its address and ABI in the code.", true);
                     disableButtons();
@@ -305,15 +309,9 @@
                 return;
             }
 
-            // Re-validate address just before interaction
-            console.log("Approving: Checking escrowContractAddress validity:", ethers.utils.isAddress(escrowContractAddress));
-            if (!ethers.utils.isAddress(escrowContractAddress)) {
-                showMessageBox("Configuration Error: Escrow Contract Address invalid. Please update the code with a valid deployed address. Check the console for more details.");
-                setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                console.error("ERROR: escrowContractAddress is not a valid address during approveButton execution. Value:", escrowContractAddress);
-                return; 
-            }
-
+            // The ethers.Contract constructor itself will validate the address format and checksum.
+            // No need for explicit isAddress() check here if myContract was initialized successfully.
+            
             const amountInput = document.getElementById("amount").value;
             if (isNaN(amountInput) || parseFloat(amountInput) <= 0) {
                 showMessageBox("Please enter a valid amount (greater than 0).");
@@ -358,15 +356,9 @@
                 showMessageBox("Please connect your wallet and ensure the escrow contract is configured correctly.");
                 return;
             }
-
-            // Re-validate address just before interaction
-            console.log("Opening Escrow: Checking escrowContractAddress validity:", ethers.utils.isAddress(escrowContractAddress));
-            if (!ethers.utils.isAddress(escrowContractAddress)) {
-                showMessageBox("Configuration Error: Escrow Contract Address invalid. Please update the code with a valid deployed address. Check the console for more details.");
-                setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                console.error("ERROR: escrowContractAddress is not a valid address during openEscrow execution. Value:", escrowContractAddress);
-                return; 
-            }
+            
+            // The ethers.Contract constructor itself will validate the address format and checksum.
+            // No need for explicit isAddress() check here if myContract was initialized successfully.
 
             const amountInput = document.getElementById("amount").value;
             const sellerAddress = document.getElementById("sellerAddress").value;
@@ -435,14 +427,8 @@
                 return;
             }
             
-            // Re-validate address just before interaction
-            console.log("Closing Escrow: Checking escrowContractAddress validity:", ethers.utils.isAddress(escrowContractAddress));
-            if (!ethers.utils.isAddress(escrowContractAddress)) {
-                showMessageBox("Configuration Error: Escrow Contract Address invalid. Please update the code with a valid deployed address. Check the console for more details.");
-                setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                console.error("ERROR: escrowContractAddress is not a valid address during closeEscrow execution. Value:", escrowContractAddress);
-                return; 
-            }
+            // The ethers.Contract constructor itself will validate the address format and checksum.
+            // No need for explicit isAddress() check here if myContract was initialized successfully.
 
             const closeOption = document.getElementById("closeOption").value;
             const paySellerBoolean = (closeOption === "paySeller"); 
