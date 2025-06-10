@@ -28,19 +28,20 @@
     <a href="#mainContent" class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</a>
   </section>
 
-  <!-- Main Escrow App -->
+  <!-- Escrow Interface -->
   <section id="mainContent" class="min-h-screen py-12 px-4">
     <div class="max-w-3xl mx-auto p-6 bg-gradient-to-br from-gray-900 to-black shadow-xl rounded-xl border border-gray-700">
       <h1 class="text-3xl font-bold mb-4 text-center text-white">🛡️ Escrow Smart Contract</h1>
       <hr class="mb-6 border-gray-700">
 
       <!-- Wallet Connection -->
-      <section class="mb-6 text-center">
-        <div class="text-sm text-gray-400 mb-2">Wallet connection:</div>
-        <span id="walletStatus" class="font-medium text-red-400">Checking for wallet...</span>
+      <div class="text-center mb-6">
+        <p class="text-sm text-gray-400 mb-2">Wallet connection:</p>
+        <span id="walletStatus" class="font-medium text-red-400">Checking for wallet...</span><br>
         <button onclick="checkWallet()" id="walletButton" class="mt-2 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">Connect Wallet</button>
-      </section>
+      </div>
 
+      <!-- Status Message -->
       <div class="mb-6">
         <h3 class="text-lg font-semibold">Status: <span id="responseMessage" class="text-green-400"></span></h3>
       </div>
@@ -77,52 +78,70 @@
     </div>
   </section>
 
-  <!-- JS -->
+  <!-- Escrow Logic -->
   <script>
-    const escrowContractAddress = "0xDd5716639639634AD3D4fbeb56F649B289873db8"; // ✅ Your deployed escrow contract
-    const escrowTokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // ✅ USDC on Polygon
-
+    const escrowContractAddress = '0xDd5716639639634AD3D4fbeb56F649B289873db8';
+    const escrowTokenAddress = '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359';
     let provider, signer, myContract;
 
     async function checkWallet() {
-      if (typeof window.ethereum === "undefined") {
-        document.getElementById("walletStatus").innerText = "MetaMask not found. Please install it.";
+      if (!window.ethereum) {
+        document.getElementById("walletStatus").innerText = "MetaMask not found.";
         return;
       }
-
       try {
-        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        const accounts = await provider.listAccounts();
-
-        if (accounts.length === 0) {
-          document.getElementById("walletStatus").innerText = "No wallet accounts found.";
-          return;
-        }
-
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
         const userAddress = accounts[0];
-        document.getElementById("walletStatus").innerHTML = `✅ Connected: <br>${userAddress}`;
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
+        document.getElementById("walletStatus").innerText = `✅ Connected: ${userAddress}`;
         document.getElementById("walletStatus").style.color = "#00ff99";
         document.getElementById("walletButton").hidden = true;
-
-        myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
-      } catch (error) {
-        console.error("Wallet connection error:", error);
-        document.getElementById("walletStatus").innerText = `Connection failed: ${error.message}`;
+      } catch (err) {
+        console.error("Wallet error:", err);
+        document.getElementById("walletStatus").innerText = `Error: ${err.message}`;
       }
     }
 
-    function approveButton() {
-      // Your approve logic goes here
+    async function approveButton() {
+      const getAmt = document.getElementById('amount').value;
+      const approveAmt = BigInt(getAmt * 10 ** 18);
+      const tokenContract = new ethers.Contract(escrowTokenAddress, escrowTokenABI, signer);
+      try {
+        const tx = await tokenContract.approve(escrowContractAddress, approveAmt);
+        await tx.wait();
+        document.getElementById("responseMessage").innerText = "✔ Token transfer approved!";
+        document.getElementById("openButton").disabled = false;
+      } catch (err) {
+        document.getElementById("responseMessage").innerText = `Error: ${err.message}`;
+      }
     }
 
-    function openEscrow() {
-      // Your openEscrow logic goes here
+    async function openEscrow() {
+      const amount = document.getElementById('amount').value;
+      const seller = document.getElementById('sellerAddress').value;
+      const mediator = document.getElementById('mediatorAddress').value;
+      const amt = BigInt(amount * 10 ** 18);
+      try {
+        const tx = await myContract.openEscrow(amt, seller, mediator);
+        await tx.wait();
+        document.getElementById("responseMessage").innerText = "✔ Escrow opened!";
+      } catch (err) {
+        document.getElementById("responseMessage").innerText = `Error: ${err.message}`;
+      }
     }
 
-    function closeEscrow() {
-      // Your closeEscrow logic goes here
+    async function closeEscrow() {
+      const option = document.getElementById('closeOption').value;
+      const closeCode = option === "paySeller" ? 1 : 0;
+      try {
+        const tx = await myContract.closeEscrow(closeCode);
+        await tx.wait();
+        document.getElementById("responseMessage").innerText = "✔ Escrow closed!";
+      } catch (err) {
+        document.getElementById("responseMessage").innerText = `Error: ${err.message}`;
+      }
     }
   </script>
 </body>
