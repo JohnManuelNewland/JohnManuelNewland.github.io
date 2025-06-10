@@ -1,128 +1,435 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Polygon Escrow</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="./escrowABI.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.5.0/ethers.umd.min.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
-    .orbitron-font {
-      font-family: 'Orbitron', sans-serif;
-    }
-    html {
-      scroll-behavior: smooth;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Polygon Escrow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Web3.js is not strictly needed if using Ethers.js, but keeping it as per original -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Placeholder for escrowABI.js - I will define a minimal ABI directly in the script for demonstration -->
+    <!-- <script src="./escrowABI.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.5.0/ethers.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+        .orbitron-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Custom styles for disabled buttons */
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Message Box styles */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .message-box-content {
+            background-color: #1a202c; /* gray-900 */
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            border: 1px solid #4a5568; /* gray-700 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            color: white;
+        }
+        .message-box-button {
+            background-color: #4a5568; /* gray-700 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            margin-top: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .message-box-button:hover {
+            background-color: #2d3748; /* gray-800 */
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans">
 
-  <!-- Hero Section -->
-  <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
-    <h1 class="text-7xl orbitron-font font-extrabold tracking-widest">Polygon</h1>
-    <p class="mt-4 text-lg text-gray-400">Your trusted escrow site</p>
-    <a href="#mainContent" class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</a>
-  </section>
-
-  <!-- Main Escrow App -->
-  <section id="mainContent" class="min-h-screen py-12 px-4">
-    <div class="max-w-3xl mx-auto p-6 bg-gradient-to-br from-gray-900 to-black shadow-xl rounded-xl border border-gray-700">
-      <h1 class="text-3xl font-bold mb-4 text-center text-white">🛡️ Escrow Smart Contract</h1>
-      <hr class="mb-6 border-gray-700">
-
-      <section class="mb-6 text-center">
-        <div class="text-sm text-gray-400 mb-2">Wallet connection:</div>
-        <span id="walletStatus" class="font-medium text-red-400">Not connected</span><br>
-        <button onclick="checkWallet()" id="walletButton" class="mt-2 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">Connect Wallet</button>
-      </section>
-
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold">Status: <span id="responseMessage" class="text-green-400"></span></h3>
-      </div>
-
-      <!-- Open Escrow -->
-      <div class="mb-10">
-        <h2 class="text-xl font-semibold mb-4 text-white">Open Escrow</h2>
-        <p class="mb-3 text-sm text-gray-400">Before opening escrow, approve token transfer.</p>
-
-        <label class="block text-sm font-medium text-gray-300">Amount</label>
-        <input type="number" id="amount" min="1" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"/>
-
-        <button id="approveButton" onclick="approveButton()" class="bg-gray-700 text-white px-4 py-2 mt-3 rounded hover:bg-gray-600 mb-4">Approve Token Transfer</button>
-
-        <label class="block text-sm font-medium text-gray-300">Seller Address</label>
-        <input type="text" id="sellerAddress" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"/>
-
-        <label class="block text-sm font-medium text-gray-300 mt-4">Mediator Address</label>
-        <input type="text" id="mediatorAddress" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"/>
-
-        <button id="openButton" onclick="openEscrow()" class="bg-green-600 text-white px-4 py-2 mt-4 rounded hover:bg-green-700" disabled>Open Escrow</button>
-      </div>
-
-      <!-- Close Escrow -->
-      <div>
-        <h2 class="text-xl font-semibold mb-4 text-white">Close Escrow</h2>
-        <label class="block text-sm font-medium text-gray-300">Close escrow option</label>
-        <select id="closeOption" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white">
-          <option value="paySeller">Pay Seller</option>
-          <option value="returnFunds">Return Funds</option>
-        </select>
-        <button id="closeButton" onclick="closeEscrow()" class="bg-red-600 text-white px-4 py-2 mt-4 rounded hover:bg-red-700">Close Escrow</button>
-      </div>
+    <!-- Custom Message Box -->
+    <div id="messageBox" class="message-box-overlay hidden">
+        <div class="message-box-content">
+            <p id="messageBoxText" class="text-lg"></p>
+            <button class="message-box-button" onclick="hideMessageBox()">OK</button>
+        </div>
     </div>
-  </section>
 
-  <!-- JS -->
-  <script>
-    let provider, signer, myContract;
+    <!-- Hero Section -->
+    <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
+        <h1 class="text-7xl orbitron-font font-extrabold tracking-widest">Polygon</h1>
+        <p class="mt-4 text-lg text-gray-400">Your trusted escrow site</p>
+        <a href="#mainContent" class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</a>
+    </section>
 
-    async function checkWallet() {
-      if (!window.ethereum) {
-        document.getElementById("walletStatus").innerText = "❌ MetaMask not installed.";
-        return;
-      }
+    <!-- Main Escrow App -->
+    <section id="mainContent" class="min-h-screen py-12 px-4">
+        <div class="max-w-3xl mx-auto p-6 bg-gradient-to-br from-gray-900 to-black shadow-xl rounded-xl border border-gray-700">
+            <h1 class="text-3xl font-bold mb-4 text-center text-white">🛡️ Escrow Smart Contract</h1>
+            <hr class="mb-6 border-gray-700">
 
-      try {
-        // Request wallet access
-        await ethereum.request({ method: 'eth_requestAccounts' });
+            <section class="mb-6 text-center">
+                <div class="text-sm text-gray-400 mb-2">Wallet connection:</div>
+                <span id="walletStatus" class="font-medium text-red-400">Not connected</span><br>
+                <button onclick="checkWallet()" id="walletButton" class="mt-2 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600">Connect Wallet</button>
+            </section>
 
-        // Switch to Polygon if not already there
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x89' }]  // Polygon Mainnet
-        });
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold">Status: <span id="responseMessage" class="text-green-400"></span></h3>
+            </div>
 
-        const accounts = await ethereum.request({ method: 'eth_accounts' });
-        const userAddress = accounts[0];
+            <!-- Open Escrow -->
+            <div class="mb-10">
+                <h2 class="text-xl font-semibold mb-4 text-white">Open Escrow</h2>
+                <p class="mb-3 text-sm text-gray-400">Before opening escrow, approve token transfer.</p>
 
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
+                <label for="amount" class="block text-sm font-medium text-gray-300">Amount (in tokens)</label>
+                <input type="number" id="amount" min="0" step="any" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white" placeholder="e.g., 100"/>
 
-        document.getElementById("walletStatus").innerText = `✅ Connected: ${userAddress}`;
-        document.getElementById("walletStatus").style.color = "#00FF99";
-        document.getElementById("walletButton").hidden = true;
-      } catch (err) {
-        console.error("Wallet error:", err);
-        document.getElementById("walletStatus").innerText = "❌ Wallet not connected.";
-      }
-    }
+                <button id="approveButton" onclick="approveButton()" class="bg-gray-700 text-white px-4 py-2 mt-3 rounded hover:bg-gray-600 mb-4" disabled>Approve Token Transfer</button>
 
-    function approveButton() {
-      // Your approve logic here
-    }
+                <label for="sellerAddress" class="block text-sm font-medium text-gray-300">Seller Address</label>
+                <input type="text" id="sellerAddress" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white" placeholder="0x..."/>
 
-    function openEscrow() {
-      // Your open escrow logic here
-    }
+                <label for="mediatorAddress" class="block text-sm font-medium text-gray-300 mt-4">Mediator Address</label>
+                <input type="text" id="mediatorAddress" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white" placeholder="0x..."/>
 
-    function closeEscrow() {
-      // Your close escrow logic here
-    }
-  </script>
+                <button id="openButton" onclick="openEscrow()" class="bg-green-600 text-white px-4 py-2 mt-4 rounded hover:bg-green-700" disabled>Open Escrow</button>
+            </div>
+
+            <!-- Close Escrow -->
+            <div>
+                <h2 class="text-xl font-semibold mb-4 text-white">Close Escrow</h2>
+                <label for="closeOption" class="block text-sm font-medium text-gray-300">Close escrow option</label>
+                <select id="closeOption" class="mt-1 w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white">
+                    <option value="paySeller">Pay Seller</option>
+                    <option value="returnFunds">Return Funds</option>
+                </select>
+                <button id="closeButton" onclick="closeEscrow()" class="bg-red-600 text-white px-4 py-2 mt-4 rounded hover:bg-red-700" disabled>Close Escrow</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- JS -->
+    <script>
+        let provider, signer, myContract, tokenContract;
+        let userAddress = null; // Store user's connected address
+
+        // --- Configuration: REPLACE WITH YOUR ACTUAL CONTRACT ADDRESSES AND ABIs ---
+        // Your Escrow Smart Contract Address
+        const escrowContractAddress = "0xYourEscrowContractAddressHere"; // Example: "0x123..."
+
+        // Your Escrow Smart Contract ABI (Minimal ABI for required functions)
+        // This ABI assumes your escrow contract has:
+        // - openEscrow(address _seller, address _mediator, uint256 _amount)
+        // - paySeller()
+        // - returnFunds()
+        const escrowABI = [
+            "function openEscrow(address _seller, address _mediator, uint256 _amount)",
+            "function paySeller()",
+            "function returnFunds()"
+        ];
+
+        // The ERC-20 Token Contract Address you are using for escrow (e.g., DAI, USDC on Polygon)
+        const tokenContractAddress = "0xYourERC20TokenAddressHere"; // Example: "0x456..."
+
+        // ERC-20 Token ABI (Minimal ABI for the 'approve' function)
+        const tokenABI = [
+            "function approve(address spender, uint256 amount) returns (bool)",
+            "function decimals() view returns (uint8)" // To handle token decimals
+        ];
+        // --- END CONFIGURATION ---
+
+        let tokenDecimals = 18; // Default to 18 decimals, will be fetched from token contract
+
+        // --- Utility Functions ---
+        function showMessageBox(message) {
+            document.getElementById("messageBoxText").innerText = message;
+            document.getElementById("messageBox").classList.remove("hidden");
+        }
+
+        function hideMessageBox() {
+            document.getElementById("messageBox").classList.add("hidden");
+        }
+
+        function setResponseMessage(message, isError = false) {
+            const responseElement = document.getElementById("responseMessage");
+            responseElement.innerText = message;
+            responseElement.style.color = isError ? "#FF4444" : "#00FF99"; // Red for error, green for success
+        }
+
+        function enableButtons() {
+            document.getElementById("approveButton").disabled = false;
+            document.getElementById("openButton").disabled = false;
+            document.getElementById("closeButton").disabled = false;
+        }
+
+        function disableButtons() {
+            document.getElementById("approveButton").disabled = true;
+            document.getElementById("openButton").disabled = true;
+            document.getElementById("closeButton").disabled = true;
+        }
+        // --- End Utility Functions ---
+
+        async function checkWallet() {
+            if (!window.ethereum) {
+                document.getElementById("walletStatus").innerText = "❌ MetaMask not installed.";
+                showMessageBox("MetaMask is not installed. Please install it to use this DApp.");
+                return;
+            }
+
+            try {
+                // Request wallet access
+                const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                userAddress = accounts[0];
+
+                // Switch to Polygon if not already there
+                const polygonChainId = '0x89'; // Polygon Mainnet Chain ID
+                const currentChainId = await ethereum.request({ method: 'eth_chainId' });
+
+                if (currentChainId !== polygonChainId) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: polygonChainId }]
+                        });
+                        setResponseMessage("Switched to Polygon Mainnet.", false);
+                    } catch (switchError) {
+                        // User rejected the switch, or chain not added
+                        if (switchError.code === 4902) {
+                            // Chain not added, propose to add it (example for Polygon)
+                            try {
+                                await window.ethereum.request({
+                                    method: 'wallet_addEthereumChain',
+                                    params: [{
+                                        chainId: polygonChainId,
+                                        chainName: 'Polygon Mainnet',
+                                        rpcUrls: ['https://polygon-rpc.com/'],
+                                        nativeCurrency: {
+                                            name: 'MATIC',
+                                            symbol: 'MATIC',
+                                            decimals: 18,
+                                        },
+                                        blockExplorerUrls: ['https://polygonscan.com/'],
+                                    }],
+                                });
+                                setResponseMessage("Polygon network added. Please connect again.", false);
+                                return; // Early exit, user needs to reconnect
+                            } catch (addError) {
+                                console.error("Failed to add Polygon network:", addError);
+                                setResponseMessage("Failed to add Polygon network. Please add it manually.", true);
+                                return;
+                            }
+                        } else if (switchError.code === 4001) {
+                            setResponseMessage("User rejected network switch.", true);
+                            return;
+                        } else {
+                            console.error("Error switching network:", switchError);
+                            setResponseMessage("Error switching to Polygon network.", true);
+                            return;
+                        }
+                    }
+                }
+
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
+                tokenContract = new ethers.Contract(tokenContractAddress, tokenABI, signer);
+
+                // Fetch token decimals
+                try {
+                    tokenDecimals = await tokenContract.decimals();
+                } catch (e) {
+                    console.warn("Could not fetch token decimals, defaulting to 18.", e);
+                    tokenDecimals = 18;
+                }
+
+                document.getElementById("walletStatus").innerText = `✅ Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
+                document.getElementById("walletStatus").style.color = "#00FF99";
+                document.getElementById("walletButton").hidden = true;
+                setResponseMessage("Wallet connected successfully!", false);
+                enableButtons(); // Enable all buttons after successful connection and network switch
+
+                // Listen for account and chain changes
+                window.ethereum.on('accountsChanged', (newAccounts) => {
+                    if (newAccounts.length === 0) {
+                        setResponseMessage("Wallet disconnected.", true);
+                        document.getElementById("walletStatus").innerText = "❌ Not connected";
+                        document.getElementById("walletStatus").style.color = "#FF4444";
+                        document.getElementById("walletButton").hidden = false;
+                        disableButtons();
+                    } else {
+                        userAddress = newAccounts[0];
+                        document.getElementById("walletStatus").innerText = `✅ Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
+                        setResponseMessage("Account changed. Please refresh if issues persist.", false);
+                    }
+                });
+
+                window.ethereum.on('chainChanged', (chainId) => {
+                    // We recommend reloading the page when the chain changes
+                    setResponseMessage("Network changed. Please refresh the page.", false);
+                    window.location.reload();
+                });
+
+            } catch (err) {
+                console.error("Wallet connection error:", err);
+                document.getElementById("walletStatus").innerText = "❌ Wallet not connected.";
+                setResponseMessage(`Wallet connection failed: ${err.message || err}`, true);
+                disableButtons();
+            }
+        }
+
+        async function approveButton() {
+            if (!signer || !tokenContract || !userAddress) {
+                showMessageBox("Please connect your wallet first.");
+                return;
+            }
+
+            const amountInput = document.getElementById("amount").value;
+            if (isNaN(amountInput) || parseFloat(amountInput) <= 0) {
+                showMessageBox("Please enter a valid amount (greater than 0).");
+                return;
+            }
+
+            try {
+                // Convert input amount to BigNumber, considering token decimals
+                const amount = ethers.utils.parseUnits(amountInput, tokenDecimals);
+
+                setResponseMessage("Approving token transfer... Please confirm in MetaMask.", false);
+                disableButtons();
+
+                // Call the approve function on the ERC-20 token contract
+                const tx = await tokenContract.approve(escrowContractAddress, amount);
+                setResponseMessage(`Approval transaction sent: ${tx.hash}`, false);
+
+                await tx.wait(); // Wait for the transaction to be mined
+                setResponseMessage("Token transfer approved successfully! You can now open escrow.", false);
+                enableButtons(); // Re-enable buttons, especially open escrow
+            } catch (error) {
+                console.error("Approval error:", error);
+                setResponseMessage(`Approval failed: ${error.message || error}`, true);
+                enableButtons(); // Re-enable buttons on error to allow retrying
+            }
+        }
+
+        async function openEscrow() {
+            if (!signer || !myContract || !userAddress) {
+                showMessageBox("Please connect your wallet first.");
+                return;
+            }
+
+            const amountInput = document.getElementById("amount").value;
+            const sellerAddress = document.getElementById("sellerAddress").value;
+            const mediatorAddress = document.getElementById("mediatorAddress").value;
+
+            if (isNaN(amountInput) || parseFloat(amountInput) <= 0) {
+                showMessageBox("Please enter a valid amount (greater than 0).");
+                return;
+            }
+            if (!ethers.utils.isAddress(sellerAddress)) {
+                showMessageBox("Please enter a valid Seller Address.");
+                return;
+            }
+            if (!ethers.utils.isAddress(mediatorAddress)) {
+                showMessageBox("Please enter a valid Mediator Address.");
+                return;
+            }
+            if (sellerAddress.toLowerCase() === userAddress.toLowerCase()) {
+                showMessageBox("Seller address cannot be your own address.");
+                return;
+            }
+            if (mediatorAddress.toLowerCase() === userAddress.toLowerCase()) {
+                showMessageBox("Mediator address cannot be your own address.");
+                return;
+            }
+             if (sellerAddress.toLowerCase() === mediatorAddress.toLowerCase()) {
+                showMessageBox("Seller and Mediator addresses cannot be the same.");
+                return;
+            }
+
+            try {
+                // Convert input amount to BigNumber, considering token decimals
+                const amount = ethers.utils.parseUnits(amountInput, tokenDecimals);
+
+                setResponseMessage("Opening escrow... Please confirm in MetaMask.", false);
+                disableButtons();
+
+                // Call the openEscrow function on your escrow contract
+                const tx = await myContract.openEscrow(sellerAddress, mediatorAddress, amount);
+                setResponseMessage(`Open Escrow transaction sent: ${tx.hash}`, false);
+
+                await tx.wait(); // Wait for the transaction to be mined
+                setResponseMessage("Escrow opened successfully!", false);
+                enableButtons(); // Re-enable buttons
+            } catch (error) {
+                console.error("Open Escrow error:", error);
+                setResponseMessage(`Open Escrow failed: ${error.message || error}`, true);
+                enableButtons(); // Re-enable buttons on error
+            }
+        }
+
+        async function closeEscrow() {
+            if (!signer || !myContract || !userAddress) {
+                showMessageBox("Please connect your wallet first.");
+                return;
+            }
+
+            const closeOption = document.getElementById("closeOption").value;
+
+            setResponseMessage(`Attempting to ${closeOption === 'paySeller' ? 'pay seller' : 'return funds'}... Please confirm in MetaMask.`, false);
+            disableButtons();
+
+            try {
+                let tx;
+                if (closeOption === "paySeller") {
+                    tx = await myContract.paySeller();
+                } else if (closeOption === "returnFunds") {
+                    tx = await myContract.returnFunds();
+                } else {
+                    showMessageBox("Invalid close option selected.");
+                    enableButtons();
+                    return;
+                }
+
+                setResponseMessage(`Close Escrow transaction sent: ${tx.hash}`, false);
+                await tx.wait(); // Wait for the transaction to be mined
+
+                setResponseMessage("Escrow closed successfully!", false);
+                enableButtons(); // Re-enable buttons
+            } catch (error) {
+                console.error("Close Escrow error:", error);
+                setResponseMessage(`Close Escrow failed: ${error.message || error}`, true);
+                enableButtons(); // Re-enable buttons on error
+            }
+        }
+
+        // Initial check and disable buttons
+        window.onload = () => {
+            disableButtons();
+        };
+
+        // If MetaMask is already connected on page load, try to establish connection
+        if (window.ethereum && window.ethereum.selectedAddress) {
+            checkWallet();
+        }
+    </script>
 </body>
 </html>
