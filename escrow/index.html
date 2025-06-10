@@ -130,119 +130,20 @@
         let provider, signer, myContract, tokenContract;
         let userAddress = null; // Store user's connected address
 
-        // --- Configuration: REPLACE WITH YOUR ACTUAL CONTRACT ADDRESSES AND ABIs ---
-        // Your Escrow Smart Contract Address
-        // This is the actual deployed address of your MyEscrow contract found via transaction hash.
+        // --- Configuration ---
         const escrowContractAddress = "0x608e9a265691F62a39E4e14D160e1591147a468d"; 
-
-        // Your Escrow Smart Contract ABI (Copied from your provided escrow.abi with corrections)
         const escrowABI = [
-            {
-                "inputs": [],
-                "name": "cancel",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "bool", 
-                        "name": "paySeller",
-                        "type": "bool"
-                    }
-                ],
-                "name": "closeEscrow",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "escrowAmount",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "address",
-                        "name": "escrowSeller",
-                        "type": "address"
-                    },
-                    {
-                        "internalType": "address",
-                        "name": "escrowMediator",
-                        "type": "address"
-                    }
-                ],
-                "name": "openEscrow",
-                "outputs": [],
-                "stateMutability": "nonpayable", 
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "stateMutability": "nonpayable",
-                "type": "constructor"
-            },
-            {
-                "inputs": [],
-                "name": "amountToEscrow",
-                "outputs": [
-                    {
-                        "internalType": "uint256",
-                        "name": "",
-                        "type": "uint256"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "buyerAddress",
-                "outputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "mediatorAddress",
-                "outputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [],
-                "name": "sellerAddress",
-                "outputs": [
-                    {
-                        "internalType": "address",
-                        "name": "",
-                        "type": "address"
-                    }
-                ],
-                "stateMutability": "view",
-                "type": "function"
-            }
+            { "inputs": [], "name": "cancel", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+            { "inputs": [{ "internalType": "bool", "name": "paySeller", "type": "bool" }], "name": "closeEscrow", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+            { "inputs": [{ "internalType": "uint256", "name": "escrowAmount", "type": "uint256" }, { "internalType": "address", "name": "escrowSeller", "type": "address" }, { "internalType": "address", "name": "escrowMediator", "type": "address" }], "name": "openEscrow", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+            { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
+            { "inputs": [], "name": "amountToEscrow", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "buyerAddress", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "mediatorAddress", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" },
+            { "inputs": [], "name": "sellerAddress", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }
         ];
 
-        // The ERC-20 Token Contract Address you are using for escrow (USDC on Polygon Mainnet PoS)
         const tokenContractAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"; 
-
-        // ERC-20 Token ABI (Minimal ABI for the 'approve' and 'decimals' functions)
         const tokenABI = [
             "function approve(address spender, uint256 amount) returns (bool)",
             "function decimals() view returns (uint8)" 
@@ -268,7 +169,7 @@
         }
 
         function enableButtons() {
-            console.log("enableButtons() called!"); // Added log for debugging
+            console.log("enableButtons() called!"); 
             document.getElementById("approveButton").disabled = false;
             document.getElementById("openButton").disabled = false;
             document.getElementById("closeButton").disabled = false;
@@ -340,24 +241,24 @@
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
                 
-                // Add console log for ethers.utils.isAddress check
-                console.log("Is escrowContractAddress a valid address?", ethers.utils.isAddress(escrowContractAddress));
+                console.log("Attempting to create contract instance with address:", escrowContractAddress);
 
-                // Initialize myContract here only if escrowContractAddress is valid
-                if (ethers.utils.isAddress(escrowContractAddress)) { // Check if the address is valid format
+                // Attempt to create contract instance directly without initial isAddress check here
+                try {
                     myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
-                } else {
-                    setResponseMessage("Configuration Error: Escrow Contract Address invalid. Please update the code with a valid deployed address.", true);
-                    console.error("ERROR: escrowContractAddress is not a valid address. Please update 'const escrowContractAddress' with your deployed contract address.");
+                    console.log("Contract instance created successfully.");
+                } catch (contractError) {
+                    // Catch specific error if contract address is truly invalid during construction
+                    console.error("Error creating myContract instance:", contractError);
+                    setResponseMessage("Error initializing Escrow Contract. Please check its address and ABI in the code.", true);
                     disableButtons();
-                    return; // Stop execution if escrow contract address is invalid
+                    return;
                 }
 
                 tokenContract = new ethers.Contract(tokenContractAddress, tokenABI, signer);
 
-                console.log("Using Escrow Contract Address:", escrowContractAddress); // Log the address being used
+                console.log("Using Escrow Contract Address:", escrowContractAddress); 
 
-                // Fetch token decimals (specifically handle USDC's 6 decimals)
                 try {
                     tokenDecimals = await tokenContract.decimals();
                 } catch (e) {
@@ -371,7 +272,6 @@
                 setResponseMessage("Wallet connected successfully!", false);
                 enableButtons(); // Enable all buttons after successful connection and network switch
 
-                // Listen for account and chain changes
                 window.ethereum.on('accountsChanged', (newAccounts) => {
                     if (newAccounts.length === 0) {
                         setResponseMessage("Wallet disconnected.", true);
@@ -400,23 +300,24 @@
         }
 
         async function approveButton() {
-            if (!signer || !tokenContract || !userAddress || !myContract) { // Added myContract check
+            if (!signer || !tokenContract || !userAddress || !myContract) { 
                 showMessageBox("Please connect your wallet and ensure the escrow contract is configured correctly.");
                 return;
+            }
+
+            // Re-validate address just before interaction
+            console.log("Approving: Checking escrowContractAddress validity:", ethers.utils.isAddress(escrowContractAddress));
+            if (!ethers.utils.isAddress(escrowContractAddress)) {
+                showMessageBox("Configuration Error: Escrow Contract Address invalid. Please update the code with a valid deployed address. Check the console for more details.");
+                setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
+                console.error("ERROR: escrowContractAddress is not a valid address during approveButton execution. Value:", escrowContractAddress);
+                return; 
             }
 
             const amountInput = document.getElementById("amount").value;
             if (isNaN(amountInput) || parseFloat(amountInput) <= 0) {
                 showMessageBox("Please enter a valid amount (greater than 0).");
                 return;
-            }
-
-            // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress)) {
-                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration. Check the console for more details.");
-                setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                console.error("ERROR: escrowContractAddress is not a valid address. Please update 'const escrowContractAddress' with your deployed contract address.");
-                return; 
             }
 
             try {
@@ -458,6 +359,15 @@
                 return;
             }
 
+            // Re-validate address just before interaction
+            console.log("Opening Escrow: Checking escrowContractAddress validity:", ethers.utils.isAddress(escrowContractAddress));
+            if (!ethers.utils.isAddress(escrowContractAddress)) {
+                showMessageBox("Configuration Error: Escrow Contract Address invalid. Please update the code with a valid deployed address. Check the console for more details.");
+                setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
+                console.error("ERROR: escrowContractAddress is not a valid address during openEscrow execution. Value:", escrowContractAddress);
+                return; 
+            }
+
             const amountInput = document.getElementById("amount").value;
             const sellerAddress = document.getElementById("sellerAddress").value;
             const mediatorAddress = document.getElementById("mediatorAddress").value;
@@ -486,22 +396,13 @@
                 showMessageBox("Seller and Mediator addresses cannot be the same.");
                 return;
             }
-            // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress)) {
-                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration. Check the console for more details.");
-                setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                console.error("ERROR: escrowContractAddress is not a valid address. Please update 'const escrowContractAddress' with your deployed contract address.");
-                return; 
-            }
-
-
+            
             try {
                 const amount = ethers.utils.parseUnits(amountInput, tokenDecimals);
 
                 setResponseMessage("Opening escrow... Please confirm in MetaMask.", false);
                 disableButtons();
 
-                // Corrected order of arguments: amount, sellerAddress, mediatorAddress
                 const tx = await myContract.openEscrow(amount, sellerAddress, mediatorAddress);
                 setResponseMessage(`Open Escrow transaction sent: ${tx.hash}`, false);
 
@@ -533,22 +434,23 @@
                 showMessageBox("Please connect your wallet and ensure the escrow contract is configured correctly.");
                 return;
             }
-            // Input validation for escrowContractAddress before proceeding
+            
+            // Re-validate address just before interaction
+            console.log("Closing Escrow: Checking escrowContractAddress validity:", ethers.utils.isAddress(escrowContractAddress));
             if (!ethers.utils.isAddress(escrowContractAddress)) {
-                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration. Check the console for more details.");
+                showMessageBox("Configuration Error: Escrow Contract Address invalid. Please update the code with a valid deployed address. Check the console for more details.");
                 setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                console.error("ERROR: escrowContractAddress is not a valid address. Please update 'const escrowContractAddress' with your deployed contract address.");
+                console.error("ERROR: escrowContractAddress is not a valid address during closeEscrow execution. Value:", escrowContractAddress);
                 return; 
             }
 
             const closeOption = document.getElementById("closeOption").value;
-            const paySellerBoolean = (closeOption === "paySeller"); // Convert string to boolean
+            const paySellerBoolean = (closeOption === "paySeller"); 
 
             setResponseMessage(`Attempting to ${closeOption === 'paySeller' ? 'pay seller' : 'return funds'}... Please confirm in MetaMask.`, false);
             disableButtons();
 
             try {
-                // Call the closeEscrow function on your escrow contract with the boolean value
                 const tx = await myContract.closeEscrow(paySellerBoolean);
                 setResponseMessage(`Close Escrow transaction sent: ${tx.hash}`, false);
                 const receipt = await tx.wait(); 
