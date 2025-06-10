@@ -136,7 +136,7 @@
         // --- Configuration: REPLACE WITH YOUR ACTUAL CONTRACT ADDRESSES AND ABIs ---
         // Your Escrow Smart Contract Address
         // !!! IMPORTANT: THIS MUST BE THE ACTUAL DEPLOYED ADDRESS OF YOUR ESCROW CONTRACT ON POLYGON MAINNET !!!
-        const escrowContractAddress = "0xYourEscrowContractAddressHere"; 
+        const escrowContractAddress = "0xDd5716639639634AD3D4fbeb56F649B289873db8"; 
 
         // Your Escrow Smart Contract ABI (Minimal ABI for required functions)
         // This ABI assumes your escrow contract has:
@@ -322,7 +322,7 @@
             }
 
             // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xYourEscrowContractAddressHere") {
+            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xDd5716639639634AD3D4fbeb56F649B289873db8") {
                 showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration.");
                 setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
                 return; // Stop execution if address is not valid
@@ -402,7 +402,7 @@
                 return;
             }
             // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xYourEscrowContractAddressHere") {
+            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xDd5716639639634AD3D4fbeb56F649B289873db8") {
                 showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration.");
                 setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
                 return; // Stop execution if address is not valid
@@ -449,7 +449,7 @@
                 return;
             }
             // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xYourEscrowContractAddressHere") {
+            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xDd5716639639634AD3D4fbeb56F649B289873db8") {
                 showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration.");
                 setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
                 return; // Stop execution if address is not valid
