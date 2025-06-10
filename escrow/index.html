@@ -16,7 +16,7 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans">
+<body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans" onload="checkWallet()">
 
   <!-- Hero Section -->
   <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
@@ -31,6 +31,7 @@
       <h1 class="text-3xl font-bold mb-4 text-center text-white">🛡️ Escrow Smart Contract</h1>
       <hr class="mb-6 border-gray-700">
 
+      <!-- Wallet Connection -->
       <section class="mb-6 text-center">
         <div class="text-sm text-gray-400 mb-2">Wallet connection:</div>
         <span id="walletStatus" class="font-medium text-red-400">Checking for wallet...</span>
@@ -75,15 +76,46 @@
 
   <!-- JS -->
   <script>
-    const escrowContractAddress = "0xYourPolygonEscrowContract"; // Replace with your deployed contract
-    const escrowTokenAddress = "0xYourPolygonToken"; // Replace with your token (e.g., USDC)
+    const escrowContractAddress = "0xYourPolygonEscrowContract"; // ✅ use your real contract
+    const escrowTokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // ✅ USDC on Polygon
 
-    // Your actual contract logic goes here
-    function switchToPolygon() {}
-    function checkWallet() {}
-    function approveButton() {}
-    function openEscrow() {}
-    function closeEscrow() {}
+    let provider, signer, myContract;
+
+    async function checkWallet() {
+      if (typeof window.ethereum === "undefined") {
+        document.getElementById("walletStatus").innerText = "MetaMask not found.";
+        return;
+      }
+
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const userAddress = accounts[0];
+
+        document.getElementById("walletStatus").innerHTML = `✅ Connected: <br>${userAddress}`;
+        document.getElementById("walletStatus").style.color = "#00ff99";
+        document.getElementById("walletButton").hidden = true;
+
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
+
+      } catch (error) {
+        console.error("Wallet connection error:", error);
+        document.getElementById("walletStatus").innerText = `Error: ${error.message}`;
+      }
+    }
+
+    function approveButton() {
+      // ✅ your real approve logic here
+    }
+
+    function openEscrow() {
+      // ✅ your real openEscrow logic here
+    }
+
+    function closeEscrow() {
+      // ✅ your real closeEscrow logic here
+    }
   </script>
 </body>
 </html>
