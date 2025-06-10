@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Polygon Escrow</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Web3.js is not strictly needed if using Ethers.js, but keeping it as per original -->
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <!-- Placeholder for escrowABI.js - I will define a minimal ABI directly in the script for demonstration -->
-    <!-- <script src="./escrowABI.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.5.0/ethers.umd.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
@@ -136,27 +133,120 @@
         // --- Configuration: REPLACE WITH YOUR ACTUAL CONTRACT ADDRESSES AND ABIs ---
         // Your Escrow Smart Contract Address
         // !!! IMPORTANT: THIS MUST BE THE ACTUAL DEPLOYED ADDRESS OF YOUR ESCROW CONTRACT ON POLYGON MAINNET !!!
-        const escrowContractAddress = "0xDd5716639639634AD3D4fbeb56F649B289873db8"; 
+        // You MUST replace this with the address you found on PolygonScan for your deployed contract.
+        const escrowContractAddress = "0xd76eb3c171119fb0a488fa6bfad10e2f6000118cd57a0b23060f1eac912ce829"; // <-- Update this line!
 
-        // Your Escrow Smart Contract ABI (Minimal ABI for required functions)
-        // This ABI assumes your escrow contract has:
-        // - openEscrow(address _seller, address _mediator, uint256 _amount)
-        // - paySeller()
-        // - returnFunds()
+        // Your Escrow Smart Contract ABI (Copied from your provided escrow.abi with corrections)
         const escrowABI = [
-            "function openEscrow(address _seller, address _mediator, uint256 _amount)",
-            "function paySeller()",
-            "function returnFunds()"
+            {
+                "inputs": [],
+                "name": "cancel",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bool", // Corrected from uint256 to bool
+                        "name": "paySeller",
+                        "type": "bool"
+                    }
+                ],
+                "name": "closeEscrow",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "escrowAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "escrowSeller",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "escrowMediator",
+                        "type": "address"
+                    }
+                ],
+                "name": "openEscrow",
+                "outputs": [],
+                "stateMutability": "nonpayable", // Corrected from payable to nonpayable
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "inputs": [],
+                "name": "amountToEscrow",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "buyerAddress",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "mediatorAddress",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "sellerAddress",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
         ];
 
-        // The ERC-20 Token Contract Address you are using for escrow (e.g., DAI, USDC on Polygon)
-        // Correct USDC on Polygon Mainnet (PoS) address
+        // The ERC-20 Token Contract Address you are using for escrow (USDC on Polygon Mainnet PoS)
         const tokenContractAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"; 
 
-        // ERC-20 Token ABI (Minimal ABI for the 'approve' function)
+        // ERC-20 Token ABI (Minimal ABI for the 'approve' and 'decimals' functions)
         const tokenABI = [
             "function approve(address spender, uint256 amount) returns (bool)",
-            "function decimals() view returns (uint8)" // To handle token decimals
+            "function decimals() view returns (uint8)" 
         ];
         // --- END CONFIGURATION ---
 
@@ -200,11 +290,9 @@
             }
 
             try {
-                // Request wallet access
                 const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
                 userAddress = accounts[0];
 
-                // Switch to Polygon if not already there
                 const polygonChainId = '0x89'; // Polygon Mainnet Chain ID (137 in decimal)
                 const currentChainId = await ethereum.request({ method: 'eth_chainId' });
 
@@ -216,9 +304,7 @@
                         });
                         setResponseMessage("Switched to Polygon Mainnet.", false);
                     } catch (switchError) {
-                        // User rejected the switch, or chain not added
                         if (switchError.code === 4902) {
-                            // Chain not added, propose to add it (example for Polygon)
                             try {
                                 await window.ethereum.request({
                                     method: 'wallet_addEthereumChain',
@@ -235,7 +321,7 @@
                                     }],
                                 });
                                 setResponseMessage("Polygon network added. Please connect again.", false);
-                                return; // Early exit, user needs to reconnect
+                                return; 
                             } catch (addError) {
                                 console.error("Failed to add Polygon network:", addError);
                                 setResponseMessage("Failed to add Polygon network. Please add it manually.", true);
@@ -254,24 +340,27 @@
 
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
-                // Ensure escrowContractAddress is a valid, deployed address here
-                myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
+                
+                // Initialize myContract here only if escrowContractAddress is valid
+                if (ethers.utils.isAddress(escrowContractAddress) && escrowContractAddress !== "0xd76eb3c171119fb0a488fa6bfad10e2f6000118cd57a0b23060f1eac912ce829") {
+                    myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
+                } else {
+                    setResponseMessage("Configuration Error: Escrow Contract Address not set or invalid. Please update the code.", true);
+                    console.error("ERROR: escrowContractAddress is not a valid address or is still the placeholder. Please update 'const escrowContractAddress' with your deployed contract address.");
+                    disableButtons();
+                    return; // Stop execution if escrow contract address is invalid
+                }
+
                 tokenContract = new ethers.Contract(tokenContractAddress, tokenABI, signer);
 
-                // Fetch token decimals
+                console.log("Using Escrow Contract Address:", escrowContractAddress); // Log the address being used
+
+                // Fetch token decimals (specifically handle USDC's 6 decimals)
                 try {
                     tokenDecimals = await tokenContract.decimals();
                 } catch (e) {
-                    console.warn("Could not fetch token decimals for USDC. Defaulting to 18. Error:", e);
-                    // USDC has 6 decimals, so if fetching fails for USDC, it's critical to know.
-                    // For testing purposes, if it's USDC, you might hardcode to 6 if decimals() call fails:
-                    // if (tokenContractAddress.toLowerCase() === "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359".toLowerCase()) {
-                    //     tokenDecimals = 6;
-                    // } else {
-                    //     tokenDecimals = 18;
-                    // }
-                    // However, in a robust DApp, fetching decimals is preferred.
-                    tokenDecimals = 6; // Set specifically for USDC (commonly 6 decimals)
+                    console.warn("Could not fetch token decimals for USDC. Defaulting to 6. Error:", e);
+                    tokenDecimals = 6; 
                 }
 
                 document.getElementById("walletStatus").innerText = `✅ Connected: ${userAddress.substring(0, 6)}...${userAddress.substring(userAddress.length - 4)}`;
@@ -296,7 +385,6 @@
                 });
 
                 window.ethereum.on('chainChanged', (chainId) => {
-                    // We recommend reloading the page when the chain changes
                     setResponseMessage("Network changed. Please refresh the page.", false);
                     window.location.reload();
                 });
@@ -310,8 +398,8 @@
         }
 
         async function approveButton() {
-            if (!signer || !tokenContract || !userAddress) {
-                showMessageBox("Please connect your wallet first.");
+            if (!signer || !tokenContract || !userAddress || !myContract) { // Added myContract check
+                showMessageBox("Please connect your wallet and ensure the escrow contract is configured correctly.");
                 return;
             }
 
@@ -322,54 +410,49 @@
             }
 
             // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xDd5716639639634AD3D4fbeb56F649B289873db8") {
-                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration.");
+            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xd76eb3c171119fb0a488fa6bfad10e2f6000118cd57a0b23060f1eac912ce829") {
+                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration. Check the console for more details.");
                 setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                return; // Stop execution if address is not valid
+                console.error("ERROR: escrowContractAddress is not a valid address or is still the placeholder. Please update 'const escrowContractAddress' with your deployed contract address.");
+                return; 
             }
 
-
             try {
-                // Convert input amount to BigNumber, considering token decimals
                 const amount = ethers.utils.parseUnits(amountInput, tokenDecimals);
 
                 setResponseMessage("Approving token transfer... Please confirm in MetaMask.", false);
                 disableButtons();
 
-                // Call the approve function on the ERC-20 token contract
                 const tx = await tokenContract.approve(escrowContractAddress, amount);
                 setResponseMessage(`Approval transaction sent: ${tx.hash}`, false);
 
-                // Wait for the transaction to be mined
-                // This is where the status updates to 'Success' or 'Fail'
                 const receipt = await tx.wait(); 
-                if (receipt.status === 1) { // 1 means success
+                if (receipt.status === 1) { 
                     setResponseMessage("Token transfer approved successfully! You can now open escrow.", false);
-                    enableButtons(); // Re-enable buttons, especially open escrow
+                    enableButtons(); 
                 } else {
-                    setResponseMessage("Token transfer approval failed on the blockchain. Check PolygonScan for details.", true);
+                    setResponseMessage("Token transfer approval failed on the blockchain. Check PolygonScan for details and your browser console.", true);
                     console.error("Transaction receipt:", receipt);
-                    enableButtons(); // Re-enable buttons on error to allow retrying
+                    enableButtons(); 
                 }
             } catch (error) {
                 console.error("Approval error:", error);
-                // More detailed error messages if possible
                 let errorMessage = `Approval failed: ${error.message || error}`;
                 if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
-                    errorMessage += " (Insufficient funds, contract error, or allowance problem)";
+                    errorMessage += " (Insufficient funds for gas, contract error, or allowance problem)";
                 } else if (error.code === 4001) {
                     errorMessage += " (Transaction rejected by user)";
                 } else if (error.code === -32000) {
                     errorMessage += " (Transaction reverted or RPC error)";
                 }
                 setResponseMessage(errorMessage, true);
-                enableButtons(); // Re-enable buttons on error to allow retrying
+                enableButtons(); 
             }
         }
 
         async function openEscrow() {
             if (!signer || !myContract || !userAddress) {
-                showMessageBox("Please connect your wallet first.");
+                showMessageBox("Please connect your wallet and ensure the escrow contract is configured correctly.");
                 return;
             }
 
@@ -402,105 +485,97 @@
                 return;
             }
             // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xDd5716639639634AD3D4fbeb56F649B289873db8") {
-                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration.");
+            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xd76eb3c171119fb0a488fa6bfad10e2f6000118cd57a0b23060f1eac912ce829") {
+                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration. Check the console for more details.");
                 setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                return; // Stop execution if address is not valid
+                console.error("ERROR: escrowContractAddress is not a valid address or is still the placeholder. Please update 'const escrowContractAddress' with your deployed contract address.");
+                return; 
             }
 
 
             try {
-                // Convert input amount to BigNumber, considering token decimals
                 const amount = ethers.utils.parseUnits(amountInput, tokenDecimals);
 
                 setResponseMessage("Opening escrow... Please confirm in MetaMask.", false);
                 disableButtons();
 
-                // Call the openEscrow function on your escrow contract
-                const tx = await myContract.openEscrow(sellerAddress, mediatorAddress, amount);
+                // Corrected order of arguments: amount, sellerAddress, mediatorAddress
+                const tx = await myContract.openEscrow(amount, sellerAddress, mediatorAddress);
                 setResponseMessage(`Open Escrow transaction sent: ${tx.hash}`, false);
 
-                const receipt = await tx.wait(); // Wait for the transaction to be mined
+                const receipt = await tx.wait(); 
                 if (receipt.status === 1) {
                     setResponseMessage("Escrow opened successfully!", false);
                 } else {
-                    setResponseMessage("Escrow opening failed on the blockchain. Check PolygonScan for details.", true);
+                    setResponseMessage("Escrow opening failed on the blockchain. Check PolygonScan for details and your browser console.", true);
                     console.error("Transaction receipt:", receipt);
                 }
-                enableButtons(); // Re-enable buttons
+                enableButtons(); 
             } catch (error) {
                 console.error("Open Escrow error:", error);
                 let errorMessage = `Open Escrow failed: ${error.message || error}`;
                 if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
-                    errorMessage += " (Insufficient funds, contract error, or allowance problem)";
+                    errorMessage += " (Insufficient funds for gas, contract error, or allowance problem)";
                 } else if (error.code === 4001) {
                     errorMessage += " (Transaction rejected by user)";
                 } else if (error.code === -32000) {
                     errorMessage += " (Transaction reverted or RPC error)";
                 }
                 setResponseMessage(errorMessage, true);
-                enableButtons(); // Re-enable buttons on error
+                enableButtons(); 
             }
         }
 
         async function closeEscrow() {
             if (!signer || !myContract || !userAddress) {
-                showMessageBox("Please connect your wallet first.");
+                showMessageBox("Please connect your wallet and ensure the escrow contract is configured correctly.");
                 return;
             }
             // Input validation for escrowContractAddress before proceeding
-            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xDd5716639639634AD3D4fbeb56F649B289873db8") {
-                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration.");
+            if (!ethers.utils.isAddress(escrowContractAddress) || escrowContractAddress === "0xd76eb3c171119fb0a488fa6bfad10e2f6000118cd57a0b23060f1eac912ce829") {
+                showMessageBox("Please set a valid, deployed Escrow Contract Address in the JavaScript configuration. Check the console for more details.");
                 setResponseMessage("Configuration Error: Invalid Escrow Contract Address.", true);
-                return; // Stop execution if address is not valid
+                console.error("ERROR: escrowContractAddress is not a valid address or is still the placeholder. Please update 'const escrowContractAddress' with your deployed contract address.");
+                return; 
             }
 
             const closeOption = document.getElementById("closeOption").value;
+            const paySellerBoolean = (closeOption === "paySeller"); // Convert string to boolean
 
             setResponseMessage(`Attempting to ${closeOption === 'paySeller' ? 'pay seller' : 'return funds'}... Please confirm in MetaMask.`, false);
             disableButtons();
 
             try {
-                let tx;
-                if (closeOption === "paySeller") {
-                    tx = await myContract.paySeller();
-                } else if (closeOption === "returnFunds") {
-                    tx = await myContract.returnFunds();
-                } else {
-                    showMessageBox("Invalid close option selected.");
-                    enableButtons();
-                    return;
-                }
-
+                // Call the closeEscrow function on your escrow contract with the boolean value
+                const tx = await myContract.closeEscrow(paySellerBoolean);
                 setResponseMessage(`Close Escrow transaction sent: ${tx.hash}`, false);
-                const receipt = await tx.wait(); // Wait for the transaction to be mined
+                const receipt = await tx.wait(); 
 
                 if (receipt.status === 1) {
                     setResponseMessage("Escrow closed successfully!", false);
                 } else {
-                    setResponseMessage("Escrow closing failed on the blockchain. Check PolygonScan for details.", true);
+                    setResponseMessage("Escrow closing failed on the blockchain. Check PolygonScan for details and your browser console.", true);
                     console.error("Transaction receipt:", receipt);
                 }
-                enableButtons(); // Re-enable buttons
+                enableButtons(); 
             } catch (error) {
                 console.error("Close Escrow error:", error);
                 let errorMessage = `Close Escrow failed: ${error.message || error}`;
                 if (error.code === "UNPREDICTABLE_GAS_LIMIT") {
-                    errorMessage += " (Insufficient funds, contract error, or allowance problem)";
+                    errorMessage += " (Insufficient funds for gas, contract error, or allowance problem)";
                 } else if (error.code === 4001) {
                     errorMessage += " (Transaction rejected by user)";
                 } else if (error.code === -32000) {
                     errorMessage += " (Transaction reverted or RPC error)";
                 }
                 setResponseMessage(errorMessage, true);
-                enableButtons(); // Re-enable buttons on error
+                enableButtons(); 
             }
         }
 
         // Initial check and disable buttons
         window.onload = () => {
             disableButtons();
-            // Automatically try to connect wallet on page load for convenience
             checkWallet(); 
         };
     </script>
