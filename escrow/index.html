@@ -19,7 +19,7 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans" onload="checkWallet()">
+<body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans">
 
   <!-- Hero Section -->
   <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
@@ -90,7 +90,19 @@
         return;
       }
       try {
-        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        if (typeof window.ethereum !== "undefined") {
+  try {
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    const userAddress = accounts[0];
+    document.getElementById("walletStatus").innerText = `✅ Connected: ${userAddress}`;
+  } catch (err) {
+    document.getElementById("walletStatus").innerText = `❌ Connection rejected.`;
+    console.error(err);
+  }
+} else {
+  document.getElementById("walletStatus").innerText = "❌ MetaMask not detected.";
+}
         const userAddress = accounts[0];
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
