@@ -14,6 +14,9 @@
     .orbitron-font {
       font-family: 'Orbitron', sans-serif;
     }
+    html {
+      scroll-behavior: smooth;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-black text-white font-sans" onload="checkWallet()">
@@ -22,7 +25,7 @@
   <section id="hero" class="h-screen w-full flex flex-col justify-center items-center">
     <h1 class="text-7xl orbitron-font font-extrabold tracking-widest">Polygon</h1>
     <p class="mt-4 text-lg text-gray-400">Your trusted escrow site</p>
-    <div class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</div>
+    <a href="#mainContent" class="mt-10 animate-bounce text-gray-400 text-xl">↓ Scroll to Begin</a>
   </section>
 
   <!-- Main Escrow App -->
@@ -76,45 +79,50 @@
 
   <!-- JS -->
   <script>
-    const escrowContractAddress = "0xDd5716639639634AD3D4fbeb56F649B289873db8"; // ✅ use your real contract
+    const escrowContractAddress = "0xDd5716639639634AD3D4fbeb56F649B289873db8"; // ✅ Your deployed escrow contract
     const escrowTokenAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // ✅ USDC on Polygon
 
     let provider, signer, myContract;
 
     async function checkWallet() {
       if (typeof window.ethereum === "undefined") {
-        document.getElementById("walletStatus").innerText = "MetaMask not found.";
+        document.getElementById("walletStatus").innerText = "MetaMask not found. Please install it.";
         return;
       }
 
       try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const userAddress = accounts[0];
+        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        const accounts = await provider.listAccounts();
 
+        if (accounts.length === 0) {
+          document.getElementById("walletStatus").innerText = "No wallet accounts found.";
+          return;
+        }
+
+        const userAddress = accounts[0];
         document.getElementById("walletStatus").innerHTML = `✅ Connected: <br>${userAddress}`;
         document.getElementById("walletStatus").style.color = "#00ff99";
         document.getElementById("walletButton").hidden = true;
 
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
         myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
-
       } catch (error) {
         console.error("Wallet connection error:", error);
-        document.getElementById("walletStatus").innerText = `Error: ${error.message}`;
+        document.getElementById("walletStatus").innerText = `Connection failed: ${error.message}`;
       }
     }
 
     function approveButton() {
-      // ✅ your real approve logic here
+      // Your approve logic goes here
     }
 
     function openEscrow() {
-      // ✅ your real openEscrow logic here
+      // Your openEscrow logic goes here
     }
 
     function closeEscrow() {
-      // ✅ your real closeEscrow logic here
+      // Your closeEscrow logic goes here
     }
   </script>
 </body>
