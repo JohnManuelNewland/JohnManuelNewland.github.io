@@ -1,5 +1,5 @@
 // Contract addresses (these are typically not part of the ABI file itself)
-const escrowContractAddress = '0xd76eb3c171119fb0a488fa6bfad10e2f6000118cd57a0b23060f1eac912ce829'; // This is an invalid address, needs to be replaced
+const escrowContractAddress = '0x29A31c93736dEac00aB5BC82028616A5c922f779'; // This is an invalid address, needs to be replaced
 const escrowTokenAddress = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"; // This is the correct USDC address
 
 // Escrow contract ABI (Corrected based on Solidity and Ethers.js compatibility)
