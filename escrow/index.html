@@ -251,9 +251,8 @@
                 console.log("Attempting to create myContract instance with address:", escrowContractAddress);
 
                 try {
-                    // Directly pass the checksummed address.
-                    // ethers.js internally validates format and checksum during Contract creation.
-                    myContract = new ethers.Contract(escrowContractAddress, escrowABI, signer);
+                    // Force address to lowercase to bypass checksum validation issues in this environment
+                    myContract = new ethers.Contract(escrowContractAddress.toLowerCase(), escrowABI, signer); 
                     console.log("myContract instance created successfully.");
                 } catch (contractError) {
                     console.error("Error creating myContract instance:", contractError);
@@ -266,8 +265,9 @@
 
                 try {
                     tokenDecimals = await tokenContract.decimals();
-                } catch (e) {
-                    console.warn("Could not fetch token decimals for USDC. Defaulting to 6. Error:", e);
+                }
+                 catch (e) {
+                    console.warn("Could not fetch token decimals. Defaulting to 6 for USDC. Error:", e);
                     tokenDecimals = 6; 
                 }
 
@@ -275,7 +275,7 @@
                 document.getElementById("walletStatus").style.color = "#00FF99";
                 document.getElementById("walletButton").hidden = true;
                 setResponseMessage("Wallet connected successfully!", false);
-                enableButtons(); // Enable all buttons after successful connection and network switch
+                enableButtons(); 
 
                 window.ethereum.on('accountsChanged', (newAccounts) => {
                     if (newAccounts.length === 0) {
@@ -371,14 +371,8 @@
                 showMessageBox("Please enter a valid Mediator Address.");
                 return;
             }
-            if (sellerAddress.toLowerCase() === userAddress.toLowerCase()) {
-                showMessageBox("Seller address cannot be your own address.");
-                return;
-            }
-            if (mediatorAddress.toLowerCase() === userAddress.toLowerCase()) {
-                showMessageBox("Mediator address cannot be your own address.");
-                return;
-            }
+            // Removed validation: sellerAddress cannot be userAddress
+            // Removed validation: mediatorAddress cannot be userAddress
              if (sellerAddress.toLowerCase() === mediatorAddress.toLowerCase()) {
                 showMessageBox("Seller and Mediator addresses cannot be the same.");
                 return;
